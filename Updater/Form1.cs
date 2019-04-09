@@ -21,8 +21,8 @@ namespace Updater
         static CancellationTokenSource cancelTokenSource = new CancellationTokenSource();
         CancellationToken token = cancelTokenSource.Token;
 
-        delegate void Message(string str, ListBox lb);
-        static private void InvokeMessage(string str, ListBox lb)
+        delegate void Message(string str, ListView lb);
+        static private void InvokeMessage(string str, ListView lb)
         {
             lb.Invoke(new Action(() => { lb.Items.Add(str); }));
         }
@@ -62,7 +62,8 @@ namespace Updater
 
                 if(OutputEnabled)logList.Invoke(new Action(() => { logList.Items.Add($"[{DateFormat(DateTime.Now)}] НАЧАТО СКАЧИВАНИЕ ОБНОВЛЕНИЯ"); }));
                 string signature = UpdateStart(action, OutputEnabled);
-                if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Maximum = upd.Count; }));
+                if (OutputEnabled)
+                    statusStrip1.Invoke( new Action( () => { progressBar.Maximum = upd.Count; } ) );
 
                 for (int i = 0; i <= upd.Count - 1; ++i)
                 {
@@ -98,7 +99,8 @@ namespace Updater
 
                 if (OutputEnabled) logList.Invoke(new Action(() => { logList.Items.Add($"[{DateFormat(DateTime.Now)}] НАЧАТА ОБРАБОТКА ОБНОВЛЕНИЯ"); }));
                 string signature = UpdateStart(action, OutputEnabled);
-                if(OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Maximum = upd.Count; }));
+                if (OutputEnabled)
+                    statusStrip1.Invoke( new Action( () => { progressBar.Maximum = upd.Count; } ) );
 
                 for (int i = 0; i <= upd.Count - 1; ++i)
                 {
@@ -120,7 +122,8 @@ namespace Updater
 
         string UpdateStart(string comment, bool OutputEnabled)
         {
-            if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Value = 0; }));
+            if (OutputEnabled)
+                statusStrip1.Invoke( new Action( () => { progressBar.Value = 0; } ) );
             SetControlsEnabling(false);
             var start_time = OracleDateFormat(DateTime.Now);
             OracleDbService.ConnOpen();
@@ -167,10 +170,12 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
 
         void UpdateEnd(string signature, string comment, bool OutputEnabled)
         {
-            if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Value = 0; }));
+            if (OutputEnabled)
+                statusStrip1.Invoke( new Action( () => { progressBar.Value = 0; } ) );
             OracleDbService.Insert($@"UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET UPDATE_END = SYSDATE WHERE SIGNATURE = '{signature}' and ""COMMENT""='{comment}'");
             OracleDbService.conn.Close();
-            if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Value = progressBar.Maximum; }));
+            if (OutputEnabled)
+                statusStrip1.Invoke( new Action( () => { progressBar.Value = progressBar.Maximum; } ) );
             SetControlsEnabling(true);
         }
 
@@ -199,7 +204,8 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
             });
             OracleDbService.ExecuteCommand(sqls);
             if (OutputEnabled) logList.Invoke(new Action(() => { logList.Items.Add($"[{DateFormat(DateTime.Now)}]{obj} скачалось за {time} сек"); }));
-            if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Value += 1; }));
+            if (OutputEnabled)
+                statusStrip1.Invoke( new Action( () => { progressBar.Value += 1; } ) );
         }
 
         void Process(string signature, string obj, string comment,bool OutputEnabled)
@@ -227,7 +233,8 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
             });
             OracleDbService.ExecuteCommand(sqls);
             if (OutputEnabled) logList.Invoke(new Action(() => { logList.Items.Add($"[{DateFormat(DateTime.Now)}]{obj} обработано на {signature} за {time} сек"); }));
-            if (OutputEnabled) progressBar.Invoke(new Action(() => { progressBar.Value += 1; }));
+            if (OutputEnabled)
+                statusStrip1.Invoke( new Action( () => { progressBar.Value += 1; } ) );
         }
 
 
@@ -281,7 +288,6 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
                 linkNameLabel.Text = "";
                 storeIdLabel.Text = "";
                 lastUpdateLabel.Text = "";
-                osLabel.Text = "";
 
                 if (Utilites.PingHost(AppConfig.OracleRemoteHost))
                 {
@@ -296,22 +302,19 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
                 Task.Factory.StartNew(() =>
                 {
                     OracleDbService.ConnOpen();
-
                     var dbVersion = OracleDbService.SelectSingleValue("SELECT SUBSTR(banner,6,10) FROM v$version WHERE BANNER LIKE 'CORE%'");
-                    dbVersionLabel.Invoke(new Action(() => dbVersionLabel.Text = dbVersion));
+                    statusStrip1.Invoke(new Action(() => dbVersionLabel.Text = dbVersion));
                     var packet = OracleDbService.SelectSingleValue("SELECT object_name FROM all_objects WHERE object_type like 'PACKAGE' AND object_name like '%PKG_UPDATE%'");
-                    packetLabel.Invoke(new Action(() => packetLabel.Text = packet));
+                    statusStrip1.Invoke(new Action(() => packetLabel.Text = packet));
                     var storeId = OracleDbService.SelectSingleValue($"SELECT NAME FROM REF_STORES WHERE SORTID=999 AND OLDID=0");
-                    storeIdLabel.Invoke(new Action(() => storeIdLabel.Text = storeId));
-                    var os = OracleDbService.SelectSingleValue($@"SELECT dbms_utility.port_string FROM dual");
-                    osLabel.Invoke(new Action(() => osLabel.Text = os));
+                    statusStrip1.Invoke(new Action(() => storeIdLabel.Text = storeId));
                     var linkUser = OracleDbService.SelectSingleValue($"SELECT USERNAME from ALL_DB_LINKS WHERE db_link LIKE '%{AppConfig.OracleRemoteLinkName}%'");
                     var linkName = OracleDbService.SelectSingleValue($"SELECT DB_LINK from ALL_DB_LINKS WHERE db_link LIKE '%{AppConfig.OracleRemoteLinkName}%'");
-                    linkNameLabel.Invoke(new Action(() => linkNameLabel.Text = $"{linkName} ({linkUser})"));
+                    statusStrip1.Invoke(new Action(() => linkNameLabel.Text = $"{linkName} ({linkUser})"));
                     var lastUpdate = OracleDbService.SelectSingleValue($@"SELECT MAX(UPDATE_END) FROM abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" WHERE SIGNATURE LIKE SYS_CONTEXT('USERENV','SERVER_HOST')|| '%'");
-                    lastUpdateLabel.Invoke(new Action(() => lastUpdateLabel.Text = lastUpdate));
+                    statusStrip1.Invoke(new Action(() => lastUpdateLabel.Text = lastUpdate));
                     var checkLink = OracleDbService.SelectSingleValue($@"SELECT * FROM dual@""{AppConfig.OracleRemoteLinkName}""");
-                    checkLinkLabel.Invoke(new Action(() => checkLinkLabel.Text = checkLink == "X" ? "работает" : "не работает"));
+                    statusStrip1.Invoke(new Action(() => checkLinkLabel.Text = checkLink == "X" ? "работает" : "не работает"));
 
                     OracleDbService.conn.Close();
 
@@ -326,9 +329,9 @@ UPDATE abt.update_log2@""{AppConfig.OracleRemoteLinkName}"" SET
 
         void SetControlsEnabling(bool enabled)
         {
-            fullUpdateButton.Invoke(new Action(() => { fullUpdateButton.Enabled = enabled; }));
-            downloadButton.Invoke(new Action(() => { downloadButton.Enabled = enabled; }));
-            processButton.Invoke(new Action(() => { processButton.Enabled = enabled; }));
+            menuStrip1.Invoke(new Action(() => { обновитьToolStripMenuItem.Enabled = enabled; }));
+            menuStrip1.Invoke(new Action(() => { скачатьToolStripMenuItem.Enabled = enabled; }));
+            menuStrip1.Invoke(new Action(() => { обработатьToolStripMenuItem.Enabled = enabled; }));
 
             countriesCheckBox.Invoke(new Action(() => { countriesCheckBox.Enabled = enabled; }));
             customersCheckBox.Invoke(new Action(() => { customersCheckBox.Enabled = enabled; }));
@@ -510,127 +513,8 @@ $"	INSERT INTO ABT.IMPORT_PRICES_CACHE SELECT * FROM ABT.UPDATE_PRICES_CACHE@\"{
 
 
         // обработчики элементов формы
-
-
-
-        private void fullUpdateButton_Click(object sender, EventArgs e)
-        {
-            if (!Utilites.PingHost(AppConfig.OracleRemoteHost))
-            {
-                MessageBox.Show("Сервер обновлений не доступен");
-                return;
-            }
-            task = Task.Factory.StartNew(() =>
-            {
-                if (DownloadUpdate() && ProcessUpdate())
-                    MessageBox.Show(null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            },
-            token);
-        }
-
-        private void updateCancel_Click(object sender, EventArgs e)
-        {
-            cancelTokenSource.Cancel();
-            task = null;
-            SetControlsEnabling(true);
-        }
-
-        private void installPackageButton_Click(object sender, EventArgs e)
-        {
-            installPkg();
-            RefreshServiceData();
-        }
-
-        private void installLinkButton_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                installLink();
-            }
-            catch (Exception ex) { MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}"); }
-            RefreshServiceData();
-        }
-
-        private void deletePackcageButton_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                var sqls = new List<OracleCommand>();
-                sqls.Add(new OracleCommand() { CommandText = "DROP PACKAGE BODY PKG_UPDATE" });
-                sqls.Add(new OracleCommand() { CommandText = "DROP PACKAGE PKG_UPDATE" });
-                OracleDbService.ConnOpen();
-                OracleDbService.ExecuteCommand(sqls);
-                OracleDbService.conn.Close();
-
-            }
-            catch (Exception ex) { MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}"); }
-            RefreshServiceData();
-        }
-
-        private void deleteLinkButton_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                OracleDbService.ConnOpen();
-                OracleDbService.ExecuteCommand(new OracleCommand()
-                {
-                    CommandText = $@"DROP PUBLIC DATABASE LINK  ""{AppConfig.OracleRemoteLinkName}"""
-                });
-                OracleDbService.conn.Close();
-
-            }
-            catch (Exception ex) { MessageBox.Show($"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}"); }
-            RefreshServiceData();
-        }
-
-        private void refreshServiceData_Click(object sender, EventArgs e)
-        {
-            RefreshServiceData();
-        }
-
-        private void saveSettingsButton_Click(object sender, EventArgs e)
-        {
-            saveSettingsButton.Enabled = false;
-            SaveSettings();
-            OracleDbService.Configure();
-            RefreshServiceData();
-            saveSettingsButton.Enabled = true;
-        }
-
-        private void resetSettingsButton_Click(object sender, EventArgs e)
-        {
-            LoadSettings();
-        }
-
-        private void downloadButton_Click(object sender, EventArgs e)
-        {
-            if (!Utilites.PingHost(AppConfig.OracleRemoteHost))
-            {
-                MessageBox.Show("Сервер обновлений не доступен");
-                return;
-            }
-            task = Task.Factory.StartNew(() =>
-            {
-                if (DownloadUpdate())
-                    MessageBox.Show(null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }, token);
-        }
-
-        private void processButton_Click(object sender, EventArgs e)
-        {
-            if (!Utilites.PingHost(AppConfig.OracleRemoteHost))
-            {
-                MessageBox.Show("Сервер обновлений не доступен");
-                return;
-            }
-            task = Task.Factory.StartNew(() =>
-            {
-                if (ProcessUpdate())
-                    MessageBox.Show(null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }, token);
-        }
-
-        private void button1_Click(object sender, EventArgs e)
+        
+        private void button1_Click(object sender, EventArgs e)// кнопка обновления таблицы с бд обновлений
         {
             Task.Factory.StartNew(() =>
             {
@@ -654,10 +538,130 @@ $"	INSERT INTO ABT.IMPORT_PRICES_CACHE SELECT * FROM ABT.UPDATE_PRICES_CACHE@\"{
                 button1.Invoke(new Action(() => button1.Enabled = true));
             });
         }
-
-        private void massUpdateButton_Click(object sender, EventArgs e)
+        
+        private void localHostTextBox_KeyPress(object sender, KeyPressEventArgs e)
         {
-            Task.Factory.StartNew(() =>
+            if (e.KeyChar.Equals( Keys.Enter ) && !String.IsNullOrEmpty(((TextBox)sender).Text))
+            {
+                SaveSettings();
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+        private void обновитьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!Utilites.PingHost( AppConfig.OracleRemoteHost ))
+            {
+                MessageBox.Show( "Сервер обновлений не доступен" );
+                return;
+            }
+            task = Task.Factory.StartNew( () =>
+            {
+                if (DownloadUpdate() && ProcessUpdate())
+                    MessageBox.Show( null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information );
+            },
+            token );
+        }
+
+        private void скачатьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!Utilites.PingHost( AppConfig.OracleRemoteHost ))
+            {
+                MessageBox.Show( "Сервер обновлений не доступен" );
+                return;
+            }
+            task = Task.Factory.StartNew( () =>
+            {
+                if (DownloadUpdate())
+                    MessageBox.Show( null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information );
+            }, token );
+        }
+
+        private void обработатьToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (!Utilites.PingHost( AppConfig.OracleRemoteHost ))
+            {
+                MessageBox.Show( "Сервер обновлений не доступен" );
+                return;
+            }
+            task = Task.Factory.StartNew( () =>
+            {
+                if (ProcessUpdate())
+                    MessageBox.Show( null, "Можете продолжить работу", "Обновление завершено!", MessageBoxButtons.OK, MessageBoxIcon.Information );
+            }, token );
+        }
+
+        private void установитьПакетToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            installPkg();
+            RefreshServiceData();
+        }
+
+        private void установитьЛинкToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                installLink();
+            }
+            catch (Exception ex) { MessageBox.Show( $"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}" ); }
+            RefreshServiceData();
+        }
+
+        private void удалитьПакетToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            try
+            {
+                var sqls = new List<OracleCommand>();
+                sqls.Add( new OracleCommand() { CommandText = "DROP PACKAGE BODY PKG_UPDATE" } );
+                sqls.Add( new OracleCommand() { CommandText = "DROP PACKAGE PKG_UPDATE" } );
+                OracleDbService.ConnOpen();
+                OracleDbService.ExecuteCommand( sqls );
+                OracleDbService.conn.Close();
+
+            }
+            catch (Exception ex) { MessageBox.Show( $"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}" ); }
+            RefreshServiceData();
+        }
+
+        private void удалитьЛинкToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            try
+            {
+                OracleDbService.ConnOpen();
+                OracleDbService.ExecuteCommand( new OracleCommand()
+                {
+                    CommandText = $@"DROP PUBLIC DATABASE LINK  ""{AppConfig.OracleRemoteLinkName}"""
+                } );
+                OracleDbService.conn.Close();
+
+            }
+            catch (Exception ex) { MessageBox.Show( $"{ex.Message}\n\n{ex.StackTrace}\n\n{ex.Source}\n\n{ex.TargetSite}" ); }
+            RefreshServiceData();
+        }
+
+        private void списокХостовДляМассовогоОбновленияToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Form form2 = new Form2();
+            form2.Text = "Список ip/host(1 на строку)";
+            form2.Show();
+        }
+
+        private void начатьМассовоеОбновлениеToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+            Task.Factory.StartNew( () =>
             {
                 string resp = "";
                 var failed = new List<string>();
@@ -665,25 +669,32 @@ $"	INSERT INTO ABT.IMPORT_PRICES_CACHE SELECT * FROM ABT.UPDATE_PRICES_CACHE@\"{
                 foreach (var item in Proxy.list)
                 {
                     i++;
-                    msg($"{i} из {c} {item}", logList);
-                    resp = InstallUpdate(item);
+                    msg( $"{i} из {c} {item}", logList );
+                    resp = InstallUpdate( item );
                     if (resp != "")
                     {
-                        failed.Add($"ОШИБКА ЭЛЕМЕНТА #{c}: {item}{resp}");
+                        failed.Add( $"ОШИБКА ЭЛЕМЕНТА #{c}: {item}{resp}" );
                         f++;
                     }
                     else
-                    msg($"БЕЗ ОШИБОК #{c}: {item}", logList);
+                        msg( $"БЕЗ ОШИБОК #{c}: {item}", logList );
                 }
-                msg($"{f} из {c} с ошибками", logList);
-            });
+                msg( $"{f} из {c} с ошибками", logList );
+            } );
         }
 
-        private void listButton_Click(object sender, EventArgs e)
+        private void сохранитьНастройкиToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Form form2 = new Form2();
-            form2.Text = "Список ip/host(1 на строку)";
-            form2.Show();
+            сохранитьНастройкиToolStripMenuItem.Enabled = false;
+            SaveSettings();
+            OracleDbService.Configure();
+            RefreshServiceData();
+            сохранитьНастройкиToolStripMenuItem.Enabled = true;
+        }
+
+        private void автоматическаяУстановкаToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

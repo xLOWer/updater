@@ -117,34 +117,18 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="label19.Text" xml:space="preserve">
-    <value>Инструкция по обновлению
-1. Выделить необходимые поля для обновлений: GOODS - товары, GROUPS - групы объектов, CONTRACTORS - магазины, CUSTOMERS - юр. лица, 
-    COUNTRIES - страны, GROUP_ITEMS - группы размерностей товаров, ITEMS - зазмерность товаров, PRICES_CACHE - цены, BAR_CODES - штрих-коды
-2. Для обычного обновления необходимо выделить все поля галочками
-3. БУДУТ ОБНОВЛЕНЫ ТОЛЬКО ТЕ, КОТОРЫЕ ОТМЕЧЕНЫ ГАЛКАМИ
-4. Далее нажать кнопку "ОБНОВИТЬ"
-5. Можно раздельно скачать и обновить позже нажав сначала "СКАЧАТЬ", а позже "ОБРАБОТАТЬ"
-6. Кнопка "СКАЧАТЬ" закачивает последние обновления, они хранятся до тех пор, пока не будут скачаны новые. 
-7. Кнопка "ОБРАБОТАТЬ" записывает в базу данных то, что скачалось последний раз
-8. При окончании обновления появляется окно с оповещением об успехе.
-
-Установка обновлений
-1. Если база на компьютере, откуда запускается программа, необходимо оставить стандартный адрес "localhost" 
-    иначе в поле "Установка" -&gt; Локальная база -&gt; Соединение -&gt; Хост/ip ввести ip-адрес базы,
-    в которую будут устанавливаться компоненты для обновления.
-2. Далее нажать "Сохранить настройки"
-3. Запустится процесс загрузки данных в "Сервисное"
-4. Установить линк (обычно быстро)
-5. Установить пакет (может знять около минуты)
-6. При необходимости параметры создания можно задавать в полях в левой половине
-7. После каждого изменения любого поля не забывайте нажимать "Сохранить настройки"
-8. Также для обновления "Сервисное" можно также сохранять настройки: в кнопке функция перезагрузки данных
-
-Updater GUI 2.4, 2019
-Шишло Дмитрий
-ООО "ВИРЭЙ"</value>
-  </data>
+  <metadata name="groupBox3.Locked" type="System.Boolean, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <metadata name="statusStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>17, 17</value>
+  </metadata>
+  <metadata name="menuStrip2.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>248, 17</value>
+  </metadata>
+  <metadata name="menuStrip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <value>133, 17</value>
+  </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
   <data name="$this.Icon" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
